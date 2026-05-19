@@ -1061,6 +1061,141 @@
     margin-right: 8px;
   }
 
+
+  /* ──────────── RESPONSIVE FORMULARIO MOBILE ──────────── */
+
+  .tel-wrapper {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    align-items: stretch;
+    position: relative;
+  }
+
+  /* ── Custom country selector ── */
+  .tel-custom-select {
+    position: relative;
+    flex-shrink: 0;
+    width: 90px;
+    user-select: none;
+  }
+
+  .tel-selected {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 8px;
+    height: 100%;
+    min-height: 44px;
+    background: var(--white);
+    border: 1px solid rgba(13,110,253,0.15);
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text);
+    transition: border-color 0.2s;
+    white-space: nowrap;
+  }
+
+  .tel-selected:hover { border-color: var(--blue); }
+
+  .tel-selected img { flex-shrink: 0; border-radius: 2px; }
+
+  .tel-arrow { margin-left: auto; color: var(--gray); flex-shrink: 0; transition: transform 0.2s; }
+  .tel-custom-select.open .tel-arrow { transform: rotate(180deg); }
+
+  .tel-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 260px;
+    background: var(--white);
+    border: 1px solid rgba(13,110,253,0.2);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 999;
+    max-height: 280px;
+    overflow: hidden;
+    flex-direction: column;
+  }
+
+  .tel-custom-select.open .tel-dropdown { display: flex; }
+
+  .tel-search {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-bottom: 1px solid rgba(13,110,253,0.1);
+    font-size: 13px;
+    font-family: 'Montserrat', sans-serif;
+    outline: none;
+    box-sizing: border-box;
+    background: var(--gray-light);
+  }
+
+  #tel-list {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  #tel-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text);
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  #tel-list li:hover { background: rgba(13,110,253,0.07); }
+  #tel-list li img { border-radius: 2px; flex-shrink: 0; }
+  #tel-list li .li-name { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  #tel-list li .li-code { color: var(--gray); font-size: 12px; }
+
+  #f-telefono {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @media (max-width: 600px) {
+    .form-row {
+      grid-template-columns: 1fr !important;
+    }
+
+    .tel-wrapper {
+      flex-direction: row;
+    }
+
+    .tel-pais-select {
+      width: 82px !important;
+    }
+
+    .contact-form {
+      padding: 24px 16px !important;
+    }
+
+    .form-submit {
+      font-size: 13px !important;
+      letter-spacing: 1px !important;
+      padding: 14px 12px !important;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea,
+    .tel-pais-select,
+    #f-telefono {
+      font-size: 16px !important;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -1433,15 +1568,28 @@
           <div class="form-group">
             <label>Email *</label>
             <input type="email" id="f-email" placeholder="tu@empresa.com" required>
+            <span id="email-error" style="display:none;font-size:11px;color:#ef4444;font-weight:600;margin-top:5px;display:none;letter-spacing:0.5px;">✕ Ingresá un email válido (ej: nombre@empresa.com)</span>
           </div>
           <div class="form-group">
             <label>Teléfono</label>
-            <input type="tel" id="f-telefono" placeholder="+54 11 0000-0000">
-          </div>
+            <div class="tel-wrapper">
+              <div class="tel-custom-select" id="tel-custom-select">
+                <div class="tel-selected" id="tel-selected" onclick="toggleTelDropdown(event)">
+                  <img id="tel-flag" src="https://flagcdn.com/w20/ar.png" alt="AR" width="20" height="14">
+                  <span id="tel-code">+54</span>
+                  <svg class="tel-arrow" viewBox="0 0 10 6" width="10"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </div>
+                <div class="tel-dropdown" id="tel-dropdown">
+                  <input type="text" class="tel-search" id="tel-search" placeholder="Buscar país..." oninput="filtrarPaises(this.value)" onclick="event.stopPropagation()">
+                  <ul id="tel-list"></ul>
+                </div>
+              </div>
+              <input type="tel" id="f-telefono" placeholder="11 2573-0630">
+            </div>
         </div>
         <div class="form-group">
-          <label>Cantidad de equipos</label>
-          <select id="f-equipos">
+          <label>Cantidad de equipos *</label>
+          <select id="f-equipos" required>
             <option value="">Seleccioná una opción</option>
             <option>1 a 5 equipos</option>
             <option>6 a 20 equipos</option>
@@ -1535,15 +1683,214 @@
 </script>
 
 <script>
+// ══════════ SELECTOR DE PAÍS CUSTOM ══════════
+const PAISES = [
+  {code:"+54", iso:"ar", name:"Argentina",          ph:"11 2573-0630"},
+  {code:"+591",iso:"bo", name:"Bolivia",             ph:"7 123-4567"},
+  {code:"+55", iso:"br", name:"Brasil",              ph:"11 91234-5678"},
+  {code:"+56", iso:"cl", name:"Chile",               ph:"9 1234-5678"},
+  {code:"+57", iso:"co", name:"Colombia",            ph:"310 123-4567"},
+  {code:"+506",iso:"cr", name:"Costa Rica",          ph:"8312-3456"},
+  {code:"+53", iso:"cu", name:"Cuba",                ph:"5 123-4567"},
+  {code:"+593",iso:"ec", name:"Ecuador",             ph:"99 123-4567"},
+  {code:"+503",iso:"sv", name:"El Salvador",         ph:"7012-3456"},
+  {code:"+502",iso:"gt", name:"Guatemala",           ph:"5123-4567"},
+  {code:"+504",iso:"hn", name:"Honduras",            ph:"9123-4567"},
+  {code:"+52", iso:"mx", name:"México",              ph:"55 1234-5678"},
+  {code:"+505",iso:"ni", name:"Nicaragua",           ph:"8123-4567"},
+  {code:"+507",iso:"pa", name:"Panamá",              ph:"6123-4567"},
+  {code:"+595",iso:"py", name:"Paraguay",            ph:"981 123-456"},
+  {code:"+51", iso:"pe", name:"Perú",                ph:"912 345-678"},
+  {code:"+1",  iso:"pr", name:"Puerto Rico",         ph:"787 555-0100"},
+  {code:"+1",  iso:"do", name:"Rep. Dominicana",     ph:"809 555-0100"},
+  {code:"+598",iso:"uy", name:"Uruguay",             ph:"94 123-456"},
+  {code:"+58", iso:"ve", name:"Venezuela",           ph:"412 123-4567"},
+  {code:"+34", iso:"es", name:"España",              ph:"612 345-678"},
+  {code:"+351",iso:"pt", name:"Portugal",            ph:"912 345-678"},
+  {code:"+44", iso:"gb", name:"Reino Unido",         ph:"7700 900123"},
+  {code:"+49", iso:"de", name:"Alemania",            ph:"151 1234-5678"},
+  {code:"+33", iso:"fr", name:"Francia",             ph:"6 12 34 56 78"},
+  {code:"+39", iso:"it", name:"Italia",              ph:"312 345-6789"},
+  {code:"+31", iso:"nl", name:"Países Bajos",        ph:"6 1234-5678"},
+  {code:"+32", iso:"be", name:"Bélgica",             ph:"470 12-3456"},
+  {code:"+41", iso:"ch", name:"Suiza",               ph:"79 123-4567"},
+  {code:"+43", iso:"at", name:"Austria",             ph:"660 1234-567"},
+  {code:"+46", iso:"se", name:"Suecia",              ph:"70 123-4567"},
+  {code:"+47", iso:"no", name:"Noruega",             ph:"406 12-345"},
+  {code:"+45", iso:"dk", name:"Dinamarca",           ph:"20 12-3456"},
+  {code:"+358",iso:"fi", name:"Finlandia",           ph:"40 123-4567"},
+  {code:"+48", iso:"pl", name:"Polonia",             ph:"512 345-678"},
+  {code:"+420",iso:"cz", name:"Rep. Checa",          ph:"601 234-567"},
+  {code:"+36", iso:"hu", name:"Hungría",             ph:"20 123-4567"},
+  {code:"+40", iso:"ro", name:"Rumania",             ph:"721 234-567"},
+  {code:"+30", iso:"gr", name:"Grecia",              ph:"691 234-5678"},
+  {code:"+7",  iso:"ru", name:"Rusia",               ph:"912 345-6789"},
+  {code:"+380",iso:"ua", name:"Ucrania",             ph:"50 123-4567"},
+  {code:"+1",  iso:"us", name:"Estados Unidos",      ph:"212 555-0100"},
+  {code:"+1",  iso:"ca", name:"Canadá",              ph:"416 555-0100"},
+  {code:"+52", iso:"mx", name:"México",              ph:"55 1234-5678"},
+  {code:"+81", iso:"jp", name:"Japón",               ph:"90 1234-5678"},
+  {code:"+82", iso:"kr", name:"Corea del Sur",       ph:"10 1234-5678"},
+  {code:"+86", iso:"cn", name:"China",               ph:"131 2345-6789"},
+  {code:"+91", iso:"in", name:"India",               ph:"98765 43210"},
+  {code:"+92", iso:"pk", name:"Pakistán",            ph:"301 234-5678"},
+  {code:"+880",iso:"bd", name:"Bangladesh",          ph:"171 234-5678"},
+  {code:"+94", iso:"lk", name:"Sri Lanka",           ph:"71 234-5678"},
+  {code:"+60", iso:"my", name:"Malasia",             ph:"12 345-6789"},
+  {code:"+65", iso:"sg", name:"Singapur",            ph:"8123-4567"},
+  {code:"+62", iso:"id", name:"Indonesia",           ph:"812 345-6789"},
+  {code:"+63", iso:"ph", name:"Filipinas",           ph:"917 123-4567"},
+  {code:"+66", iso:"th", name:"Tailandia",           ph:"81 234-5678"},
+  {code:"+84", iso:"vn", name:"Vietnam",             ph:"90 123-4567"},
+  {code:"+61", iso:"au", name:"Australia",           ph:"412 345-678"},
+  {code:"+64", iso:"nz", name:"Nueva Zelanda",       ph:"21 123-4567"},
+  {code:"+27", iso:"za", name:"Sudáfrica",           ph:"71 123-4567"},
+  {code:"+234",iso:"ng", name:"Nigeria",             ph:"802 123-4567"},
+  {code:"+254",iso:"ke", name:"Kenia",               ph:"712 123-456"},
+  {code:"+20", iso:"eg", name:"Egipto",              ph:"100 123-4567"},
+  {code:"+212",iso:"ma", name:"Marruecos",           ph:"661 234-567"},
+  {code:"+972",iso:"il", name:"Israel",              ph:"50 123-4567"},
+  {code:"+90", iso:"tr", name:"Turquía",             ph:"532 123-4567"},
+  {code:"+966",iso:"sa", name:"Arabia Saudita",      ph:"50 123-4567"},
+  {code:"+971",iso:"ae", name:"Emiratos Árabes",     ph:"50 123-4567"},
+  {code:"+55", iso:"br", name:"Brasil",              ph:"11 91234-5678"},
+];
+
+// Eliminar duplicados por iso
+const PAISES_UNIQ = PAISES.filter((p,i,a) => a.findIndex(x=>x.iso===p.iso)===i);
+
+let paisSeleccionado = PAISES_UNIQ[0];
+
+function flagUrl(iso) {
+  return `https://flagcdn.com/w20/${iso}.png`;
+}
+
+function renderLista(filtro) {
+  const lista = document.getElementById('tel-list');
+  const items = filtro
+    ? PAISES_UNIQ.filter(p =>
+        p.name.toLowerCase().includes(filtro.toLowerCase()) ||
+        p.code.includes(filtro))
+    : PAISES_UNIQ;
+
+  lista.innerHTML = items.map(p => `
+    <li onclick="seleccionarPais('${p.iso}')">
+      <img src="${flagUrl(p.iso)}" width="20" height="14" alt="${p.iso}">
+      <span class="li-name">${p.name}</span>
+      <span class="li-code">${p.code}</span>
+    </li>`).join('');
+}
+
+function seleccionarPais(iso) {
+  const p = PAISES_UNIQ.find(x => x.iso === iso);
+  if (!p) return;
+  paisSeleccionado = p;
+  document.getElementById('tel-flag').src = flagUrl(p.iso);
+  document.getElementById('tel-flag').alt = p.iso.toUpperCase();
+  document.getElementById('tel-code').textContent = p.code;
+  document.getElementById('f-telefono').placeholder = p.ph;
+  cerrarDropdown();
+}
+
+function toggleTelDropdown(e) {
+  e.stopPropagation();
+  const wrap = document.getElementById('tel-custom-select');
+  const isOpen = wrap.classList.contains('open');
+  cerrarDropdown();
+  if (!isOpen) {
+    wrap.classList.add('open');
+    document.getElementById('tel-search').value = '';
+    renderLista('');
+    setTimeout(() => document.getElementById('tel-search').focus(), 50);
+  }
+}
+
+function cerrarDropdown() {
+  document.getElementById('tel-custom-select').classList.remove('open');
+}
+
+function filtrarPaises(val) {
+  renderLista(val);
+}
+
+document.addEventListener('click', cerrarDropdown);
+
+document.addEventListener('DOMContentLoaded', function() {
+  renderLista('');
+  // Actualizar el codPais al armar el payload
+  const origEnviar = window.enviarFormulario;
+});
+
+// Sobreescribir el getter del código de país en el payload
+function getTelPais() {
+  return paisSeleccionado ? paisSeleccionado.code : '+54';
+}
+
+// ── Validación de email en tiempo real ──
+document.addEventListener('DOMContentLoaded', function() {
+  const emailInput = document.getElementById('f-email');
+  const emailError = document.getElementById('email-error');
+
+  emailInput.addEventListener('blur', function() {
+    const val = emailInput.value.trim();
+    if (val && !validarEmail(val)) {
+      emailInput.style.borderColor = '#ef4444';
+      emailInput.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+      emailError.style.display = 'block';
+    } else {
+      emailInput.style.borderColor = '';
+      emailInput.style.boxShadow = '';
+      emailError.style.display = 'none';
+    }
+  });
+
+  emailInput.addEventListener('input', function() {
+    if (emailError.style.display === 'block') {
+      emailInput.style.borderColor = '';
+      emailInput.style.boxShadow = '';
+      emailError.style.display = 'none';
+    }
+  });
+});
+
+function validarEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
 async function enviarFormulario(e) {
   e.preventDefault();
 
   const nombre  = document.getElementById('f-nombre').value.trim();
   const email   = document.getElementById('f-email').value.trim();
   const mensaje = document.getElementById('f-mensaje').value.trim();
+  const equipos = document.getElementById('f-equipos').value;
+  const emailError = document.getElementById('email-error');
 
-  if (!nombre || !email || !mensaje) {
-    alert('Por favor completá los campos obligatorios (Nombre, Email y Mensaje).');
+  // Validar email antes de continuar
+  if (email && !validarEmail(email)) {
+    const emailInput = document.getElementById('f-email');
+    emailInput.style.borderColor = '#ef4444';
+    emailInput.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+    emailError.style.display = 'block';
+    emailInput.focus();
+    return;
+  }
+
+  // Validar campos obligatorios sin alert()
+  if (!nombre || !email || !mensaje || !equipos) {
+    // Marcar visualmente los campos vacíos
+    ['f-nombre','f-email','f-mensaje'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) {
+        el.style.borderColor = '#ef4444';
+        el.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+      }
+    });
+    if (!equipos) {
+      const sel = document.getElementById('f-equipos');
+      sel.style.borderColor = '#ef4444';
+      sel.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+    }
     return;
   }
 
@@ -1557,12 +1904,17 @@ async function enviarFormulario(e) {
   btn.innerHTML = '<span class="spinner"></span> Enviando...';
   errorBox.style.display = 'none';
 
+  // Armar teléfono completo con código de país
+  const codPais  = getTelPais();
+  const numTel   = document.getElementById('f-telefono').value.trim();
+  const telefono = numTel ? `${codPais} ${numTel}` : '';
+
   const payload = {
     nombre,
     empresa:  document.getElementById('f-empresa').value.trim(),
     email,
-    telefono: document.getElementById('f-telefono').value.trim(),
-    equipos:  document.getElementById('f-equipos').value,
+    telefono,
+    equipos,
     mensaje
   };
 
@@ -1574,19 +1926,32 @@ async function enviarFormulario(e) {
     });
 
     if (res.ok) {
-      // Éxito: ocultar form, mostrar mensaje
       formFields.style.display = 'none';
       successBox.style.display = 'block';
     } else {
       throw new Error('Error del servidor');
     }
   } catch (err) {
-    // Error: mostrar mensaje, rehabilitar botón
     errorBox.style.display = 'block';
     btn.disabled = false;
     btn.innerHTML = 'Enviar consulta →';
   }
 }
+
+// Limpiar borde rojo al empezar a escribir
+document.addEventListener('DOMContentLoaded', function() {
+  ['f-nombre','f-email','f-mensaje','f-equipos'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', function() {
+      el.style.borderColor = '';
+      el.style.boxShadow = '';
+    });
+    if (el && el.tagName === 'SELECT') el.addEventListener('change', function() {
+      el.style.borderColor = '';
+      el.style.boxShadow = '';
+    });
+  });
+});
 </script>
 
 </body>
