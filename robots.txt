@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Bloquear archivos de sistema innecesarios
+Disallow: /api/
+Disallow: /_vercel/
+
+# Sitemap
+Sitemap: https://www.cmcsystems.com.ar/sitemap.xml
