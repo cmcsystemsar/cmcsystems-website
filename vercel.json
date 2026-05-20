@@ -6,6 +6,46 @@
       "dest": "/api/$1"
     },
     {
+      "src": "/sitemap\\.xml",
+      "dest": "/sitemap.xml",
+      "headers": { "Content-Type": "application/xml; charset=utf-8" }
+    },
+    {
+      "src": "/robots\\.txt",
+      "dest": "/robots.txt",
+      "headers": { "Content-Type": "text/plain; charset=utf-8" }
+    },
+    {
+      "src": "/site\\.webmanifest",
+      "dest": "/site.webmanifest",
+      "headers": { "Content-Type": "application/manifest+json; charset=utf-8" }
+    },
+    {
+      "src": "/og-image\\.png",
+      "dest": "/og-image.png",
+      "headers": { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" }
+    },
+    {
+      "src": "/favicon\\.ico",
+      "dest": "/favicon.ico",
+      "headers": { "Content-Type": "image/x-icon", "Cache-Control": "public, max-age=604800" }
+    },
+    {
+      "src": "/favicon-32x32\\.png",
+      "dest": "/favicon-32x32.png",
+      "headers": { "Content-Type": "image/png", "Cache-Control": "public, max-age=604800" }
+    },
+    {
+      "src": "/apple-touch-icon\\.png",
+      "dest": "/apple-touch-icon.png",
+      "headers": { "Content-Type": "image/png", "Cache-Control": "public, max-age=604800" }
+    },
+    {
+      "src": "/favicon-192x192\\.png",
+      "dest": "/favicon-192x192.png",
+      "headers": { "Content-Type": "image/png", "Cache-Control": "public, max-age=604800" }
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
